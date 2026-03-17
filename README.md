@@ -14,7 +14,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
   
   En résumé : C'est l'outil qui transforme une liste de connexions brutes en une liste d'alertes de sécurité.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [train_model.py] -> C'est l'étape de fabrication du cerveau (l'entraînement) de l'IA :
 
@@ -25,7 +25,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
 
   En résumé : C'est le script qui crée l'intelligence que tu utiliseras plus tard pour détecter les menaces.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [tools.py] -> C'est le "bras armé" de l'agent. Ce fichier transforme ton script de détection en une fonction que l'IA peut appeler toute seule :
 
@@ -35,7 +35,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
 
   En résumé : C'est le connecteur qui permet à ton agent GPT de devenir un véritable analyste capable d'utiliser tes outils de détection.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [test_echantillon.py] -> C'est ton outil de vérification rapide. Il sert à tester si ton intelligence artificielle fonctionne bien sur un tout petit échantillon avant de lancer de grosses analyses :
 
@@ -46,7 +46,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
 
   En résumé : C'est un "bac à sable" pour s'assurer que tes fichiers .pkl et ton code de nettoyage sont corrects sans attendre des heures.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [test_chunks.py] -> C'est ton outil de vérification de la lecture des données. Il sert à s'assurer que ton ordinateur arrive à lire ton gros fichier CSV sans saturer sa mémoire vive (RAM) :
 
@@ -57,8 +57,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
 
   En résumé : C'est un test de "tuyauterie" pour être sûr que tes données circulent bien jusqu'à l'IA sans erreur de lecture.
 
-
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [scaler.pkl] -> C'est le fichier de réglages mathématiques de ton projet.
 
@@ -68,7 +67,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
 
  En résumé : C'est la "règle de mesure" qui permet à ton IA de lire les données correctement sans faire d'erreur d'interprétation.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [random_forest_model.pkl] -> C'est le "Cerveau" de ton projet : le modèle d'intelligence artificielle entraîné.
 
@@ -76,7 +75,7 @@ Ce projet consiste à utiliser un agent ia qui détecte 3 attaques différentes 
   -Algorithme Random Forest : Il fonctionne comme une armée de centaines d'arbres de décision qui votent tous ensemble pour décider si une activité est "Saine" ou une "Attaque".
   -Prise de décision : Lorsqu'il reçoit de nouvelles données, il calcule une probabilité de menace. C'est ce score qui est ensuite comparé à ton seuil de 0.3 dans tes outils de détection.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [RAG.txt] -> C'est ta bibliothèque de savoir (la base de connaissances).
 
@@ -89,7 +88,7 @@ Ce fichier est le cœur de la partie RAG (Retrieval-Augmented Generation) de ton
 
  En résumé : C'est le "manuel d'instruction" de ton agent. Sans ce fichier, l'IA peut détecter des chiffres, mais elle ne sait pas pourquoi c'est grave ni quoi faire pour réparer le problème.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [build_vectors.py]  -> C'est ton indexeur de connaissances. Il sert à transformer ton fichier texte en une base de données que l'IA peut "fouiller" instantanément :
 
@@ -100,7 +99,7 @@ Ce fichier est le cœur de la partie RAG (Retrieval-Augmented Generation) de ton
 
   En résumé : C'est le script qui donne de la "mémoire" et de la "culture cyber" à ton agent.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [langchain_agent.py]  ->  C'est le chef d'orchestre (l'Agent). C'est lui qui donne un visage humain à toute ta technologie en discutant avec toi.
 
@@ -108,6 +107,7 @@ Ce fichier est le cœur de la partie RAG (Retrieval-Augmented Generation) de ton
   -Il utilise tes outils : Il importe ta fonction detect_attacks (via le fichier tools.py) et la transforme en un outil qu'il peut décider d'utiliser seul s'il juge que ta question nécessite une analyse de données.
   -Il réfléchit et répond : Il utilise le modèle GPT-4o-mini. Quand tu lui demandes "Combien d'attaques y a-t-il ?", il ne répond pas au hasard : il appelle l'outil de détection, récupère les chiffres, et te rédige une réponse structurée.
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [load_rag.py]  ->  C'est le testeur de lecture.
 
@@ -119,7 +119,7 @@ Son rôle est très simple mais indispensable : il sert à vérifier que ton fic
 
   En résumé : C'est une vérification de sécurité pour s'assurer que la source de ton savoir est prête à être indexée par build_vectors.py.
 
-
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## 📝 Ce qu'il reste à faire (Roadmap)
 
@@ -137,8 +137,8 @@ Son rôle est très simple mais indispensable : il sert à vérifier que ton fic
 
 
 [Logique de l’agent]
-Si :
-detect_attack = bruteforce
+Si :detect_attack = bruteforce
+
 alors :
 chercher explication dans RAG
 demander autorisation user
