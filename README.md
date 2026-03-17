@@ -136,6 +136,9 @@ Son rôle est très simple mais indispensable : il sert à vérifier que ton fic
                    3 ban_ip
 
 
+
+
+
 [Logique de l’agent]
 Si :detect_attack = bruteforce
 
@@ -143,6 +146,8 @@ alors :
 chercher explication dans RAG
 demander autorisation user
 bannir IP
+
+
 
 
 
