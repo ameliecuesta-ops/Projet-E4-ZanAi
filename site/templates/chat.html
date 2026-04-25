@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat – Zan AI Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="center_navbar">
+            <a href="{{ url_for('home') }}">Accueil</a>
+            <a href="{{ url_for('equipe') }}">Équipe</a>
+            <a href="{{ url_for('chat_reset') }}">Chat</a>
+            <a href="{{ url_for('auto') }}">Automatisation</a>
+            <div class="logo">Zan AI Agent</div>
+        </div>
+    </nav>
+
+    <div class="chat-wrapper">
+        <div class="chat-messages" id="chat-messages">
+            {% if not history %}
+                <div class="empty-state">
+                    <div class="icon">💬</div>
+                    <p>Posez votre première question à l'agent Zan</p>
+                </div>
+            {% else %}
+                {% for msg in history %}
+                    <div class="msg {{ msg.role }}">
+                        <div class="msg-bubble">{{ msg.content }}</div>
+                        <div class="msg-time">{{ msg.time }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="chat-input-area">
+            <form action="{{ url_for('res') }}" method="POST" id="chat-form" style="display:contents">
+                <textarea
+                    name="message"
+                    id="message"
+                    rows="1"
+                    placeholder="Votre message... (Entrée pour envoyer, Shift+Entrée pour sauter une ligne)"
+                    onkeydown="handleKey(event)"
+                    oninput="autoResize(this)"
+                ></textarea>
+                <button type="submit" class="btn-send" id="btn-send">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const msgs = document.getElementById('chat-messages');
+        msgs.scrollTop = msgs.scrollHeight;
+
+        function autoResize(t) {
+            t.style.height = 'auto';
+            t.style.height = Math.min(t.scrollHeight, 120) + 'px';
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').submit();
+            }
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', function() {
+            document.getElementById('btn-send').disabled = true;
+        });
+    </script>
+</body>
+</html>

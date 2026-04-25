@@ -1,0 +1,28 @@
+services:
+
+  ollama:
+    image: ollama/ollama
+    container_name: zanai_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  flask:
+    build: .
+    container_name: zanai_flask
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./chroma_db:/app/chroma_db
+      - ./blacklist.txt:/app/blacklist.txt
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

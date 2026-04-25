@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZanAI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+
+<body>
+  <nav class="navbar">
+        <div class="center_navbar">
+            <a href="{{ url_for('home') }}">Accueil</a>
+            <a href="{{ url_for('equipe') }}">Équipe</a>
+            <a href="{{ url_for('chat_reset') }}">Chat</a>
+            <a href="{{ url_for('auto') }}">Automatisation</a>
+            <div class="logo">Zan AI Agent</div>
+        </div>
+    </nav>
+
+  <section class="hero">
+    <h1>Bienvenue sur mon site</h1>
+    <p>
+      Ceci est un exemple simple de page web avec une navbar contenant un bouton
+      de connexion et d'inscription.
+    </p>
+  </section>
+
+</body>
+</html>

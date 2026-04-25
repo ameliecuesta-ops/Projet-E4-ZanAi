@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+
+:root {
+    --purple: #1E034B;
+    --white: #F4F4ED;
+    --light_purple: #BAA5C3;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: sans-serif;
+    background: var(--white);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.navbar {
+    background: var(--white);
+    border-right: 1px solid var(--purple);
+    width: 200px;
+    height: 100%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+}
+
+.center_navbar {
+    width: 80%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;           /* ← padding seulement ici */
+}
+
+.navbar .logo {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--purple);
+    margin-top: auto;         /* pousse le logo tout en bas */
+    padding-bottom: 8px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: var(--purple);
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background .15s;
+
+}
+
+.navbar a:hover {
+    background: var(--light_purple);
+}
