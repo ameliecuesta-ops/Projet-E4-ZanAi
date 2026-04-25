@@ -1,19 +1,18 @@
-# 1. Construire et démarrer les containers
-
-# 2. PREMIÈRE FOIS UNIQUEMENT — télécharger les modèles dans Ollama
-# Sur Windows, exécutez les deux commandes manuellement :
-
-# 3. Vérifier que tout tourne
-
+# Premiere fois que vous faites tourner le docker sur votre ordi
+- Pour lancer (ca prends du temps c'est normal) :
 docker compose up -d
 docker exec zanai_ollama ollama pull llama3.2
 docker exec zanai_ollama ollama pull nomic-embed-text
 docker compose logs -f
 
+- Pour arreter :
 docker compose down
 
 
-# 4. Les fois d'après
+# Les fois d'après
 
-docker compose up
+-Pour Lancer 
+docker compose up --build
+
+- Pour arreter
 docker compose down
