@@ -3,28 +3,175 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZanAI</title>
+  <title>Simulation – Zan AI Agent</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='simulation.css') }}" />
 </head>
 
 <body>
   <nav class="navbar">
-        <div class="center_navbar">
-            <a href="{{ url_for('home') }}">Accueil</a>
-            <a href="{{ url_for('equipe') }}">Équipe</a>
-            <a href="{{ url_for('chat_reset') }}">Chat</a>
-            <a href="{{ url_for('simulation') }}">Simulation</a>
-            <div class="logo">Zan AI Agent</div>
+    <div class="center_navbar">
+      <a href="{{ url_for('home') }}">Accueil</a>
+      <a href="{{ url_for('equipe') }}">Équipe</a>
+      <a href="{{ url_for('chat_reset') }}">Chat</a>
+      <a href="{{ url_for('simulation') }}">Simulation</a>
+      <div class="logo">Zan AI Agent</div>
+    </div>
+  </nav>
+
+  <div class="sim-wrapper">
+
+    <!-- ── Colonne gauche : logs ── -->
+    <div class="sim-panel sim-panel-logs">
+      <div class="sim-panel-header">
+        <span class="panel-title">📋 Logs SSH en direct</span>
+        <span id="log-count" class="badge">0 lignes</span>
+      </div>
+      <div class="sim-panel-body" id="log-feed">
+        <div class="empty-hint">Lance la simulation pour voir les logs apparaître…</div>
+      </div>
+    </div>
+
+    <!-- ── Colonne droite : alertes + contrôles ── -->
+    <div class="sim-right">
+
+      <!-- Contrôles -->
+      <div class="sim-controls">
+        <div class="status-dot-wrap">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-label">Arrêtée</span>
         </div>
-    </nav>
+        <div class="controls-buttons">
+          <button class="btn-start" id="btn-start" onclick="startSim()">▶ Démarrer</button>
+          <button class="btn-stop" id="btn-stop" onclick="stopSim()" disabled>■ Arrêter</button>
+          <button class="btn-reset" id="btn-reset" onclick="resetSim()">↺ Reset</button>
+        </div>
+      </div>
 
-  <section class="hero">
-    <h1>Bienvenue sur mon site</h1>
-    <p>
-      Ceci est un exemple simple de page web avec une navbar contenant un bouton
-      de connexion et d'inscription.
-    </p>
-  </section>
+      <!-- IPs en alerte -->
+      <div class="sim-panel">
+        <div class="sim-panel-header">
+          <span class="panel-title">🚨 IPs en alerte</span>
+          <span id="alert-count" class="badge badge-red">0</span>
+        </div>
+        <div class="sim-panel-body" id="alert-feed">
+          <div class="empty-hint">Aucune alerte pour l'instant…</div>
+        </div>
+      </div>
 
+    </div>
+  </div>
+
+  <script>
+    let pollInterval = null;
+    let knownLogs = new Set();
+    let knownAlerts = new Set();
+
+    async function startSim() {
+      await fetch('/simulation/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interval: 15 })
+      });
+      setRunning(true);
+      startPolling();
+    }
+
+    async function stopSim() {
+      await fetch('/simulation/stop', { method: 'POST' });
+      setRunning(false);
+      stopPolling();
+    }
+
+    function setRunning(running) {
+      document.getElementById('btn-start').disabled = running;
+      document.getElementById('btn-stop').disabled = !running;
+      document.getElementById('status-dot').classList.toggle('active', running);
+      document.getElementById('status-label').textContent = running ? 'En cours…' : 'Arrêtée';
+    }
+
+    function startPolling() {
+      if (pollInterval) return;
+      pollInterval = setInterval(fetchStatus, 4000);
+      fetchStatus(); // appel immédiat
+    }
+
+    function stopPolling() {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/simulation/status');
+        const data = await res.json();
+
+        updateLogs(data.last_logs, data.log_count);
+        updateAlerts(data.alert_ips);
+        setRunning(data.running);
+        if (!data.running) stopPolling();
+
+      } catch (e) {
+        console.error('Erreur fetch status', e);
+      }
+    }
+
+    function updateLogs(logs, total) {
+      const feed = document.getElementById('log-feed');
+      document.getElementById('log-count').textContent = total + ' lignes';
+
+      const newLines = logs.filter(l => !knownLogs.has(l));
+      if (!newLines.length) return;
+
+      // Retire le hint vide
+      const hint = feed.querySelector('.empty-hint');
+      if (hint) hint.remove();
+
+      newLines.forEach(line => {
+        knownLogs.add(line);
+        const div = document.createElement('div');
+        div.className = 'log-line' + (line.includes('Failed') ? ' log-fail' : ' log-ok');
+        div.textContent = line;
+        feed.appendChild(div);
+      });
+
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function updateAlerts(ips) {
+      const feed = document.getElementById('alert-feed');
+      document.getElementById('alert-count').textContent = ips.length;
+
+      const newIps = ips.filter(ip => !knownAlerts.has(ip));
+      if (!newIps.length) return;
+
+      const hint = feed.querySelector('.empty-hint');
+      if (hint) hint.remove();
+
+      newIps.forEach(ip => {
+        knownAlerts.add(ip);
+        const div = document.createElement('div');
+        div.className = 'alert-ip';
+        div.innerHTML = `<span class="ip-icon">🔴</span><span class="ip-text">${ip}</span>`;
+        feed.appendChild(div);
+      });
+    }
+
+    async function resetSim() {
+      await fetch("/simulation/reset", { method: "POST" });
+      // Remet à zéro l'affichage
+      knownLogs = new Set();
+      knownAlerts = new Set();
+      document.getElementById("log-feed").innerHTML = "<div class=\"empty-hint\">Lance la simulation pour voir les logs apparaître…</div>";
+      document.getElementById("alert-feed").innerHTML = "<div class=\"empty-hint\">Aucune alerte pour l'instant…</div>";
+      document.getElementById("log-count").textContent = "0 lignes";
+      document.getElementById("alert-count").textContent = "0";
+      setRunning(false);
+      stopPolling();
+    }
+
+    // Récupère l'état initial au chargement
+    fetchStatus();
+  </script>
 </body>
 </html>

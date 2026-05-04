@@ -1,0 +1,214 @@
+/* ── Layout principal ── */
+.sim-panel-logs {
+  flex: 1;
+  min-height: 0; /* force flex enfant à respecter la hauteur parent */
+}
+
+.sim-panel-logs .sim-panel-body {
+  min-height: 400px;
+}
+
+.sim-wrapper {
+  display: flex;
+  gap: 20px;
+  padding: 24px 40px;
+  height: calc(100vh - 60px); /* ajuste selon la hauteur de ta navbar */
+  box-sizing: border-box;
+}
+
+.sim-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 320px;
+  flex-shrink: 0;
+}
+
+/* ── Panels ── */
+.sim-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border: 1px solid var(--light_purple);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.sim-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: none;
+  background: var(--purple);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.15);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.badge-red {
+  background: rgba(255,255,255,0.15);
+  color: #ff9a9a;
+}
+
+.sim-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.sim-panel-body::-webkit-scrollbar { display: none; }
+
+.empty-hint {
+  color: var(--purple);
+  opacity: 0.4;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  margin: auto;
+}
+
+/* ── Lignes de log ── */
+.log-line {
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.log-fail {
+  background: #fdf0f0;
+  color: #c0392b;
+}
+
+.log-ok {
+  background: #f0fdf4;
+  color: #1a7a4a;
+}
+
+/* ── IPs en alerte ── */
+.alert-ip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fde8e8;
+  border: 1px solid #f5c6c6;
+}
+
+.ip-icon { font-size: 12px; }
+
+.ip-text {
+  font-weight: 600;
+  color: #c0392b;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+/* ── Contrôles ── */
+.sim-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--purple);
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.status-dot-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--white);
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background .3s;
+}
+
+.status-dot.active {
+  background: #2ecc71;
+  box-shadow: 0 0 6px #2ecc71;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.controls-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-start, .btn-stop {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.btn-start {
+  background: var(--purple);
+  color: var(--white);
+}
+
+.btn-stop {
+  background: #fde8e8;
+  color: #c0392b;
+  border: 1px solid #f5c6c6;
+}
+
+.btn-start:disabled,
+.btn-stop:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-reset {
+  flex: 1;
+  padding: 8px 0;
+  border: 1px solid var(--light_purple);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+  background: var(--white);
+  color: var(--purple);
+}
+
+.btn-reset:hover { opacity: .75; }
