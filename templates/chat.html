@@ -12,7 +12,7 @@
             <a href="{{ url_for('home') }}">Accueil</a>
             <a href="{{ url_for('equipe') }}">Équipe</a>
             <a href="{{ url_for('chat_reset') }}">Chat</a>
-            <a href="{{ url_for('auto') }}">Automatisation</a>
+            <a href="{{ url_for('simulation') }}">Simulation</a>
             <div class="logo">Zan AI Agent</div>
         </div>
     </nav>
@@ -20,7 +20,7 @@
     <div class="chat-wrapper">
         <div class="chat-messages" id="chat-messages">
             {% if not history %}
-                <div class="empty-state">
+                <div class="empty-state" id="empty-state">
                     <div class="icon">💬</div>
                     <p>Posez votre première question à l'agent Zan</p>
                 </div>
@@ -35,25 +35,24 @@
         </div>
 
         <div class="chat-input-area">
-            <form action="{{ url_for('res') }}" method="POST" id="chat-form" style="display:contents">
-                <textarea
-                    name="message"
-                    id="message"
-                    rows="1"
-                    placeholder="Votre message... (Entrée pour envoyer, Shift+Entrée pour sauter une ligne)"
-                    onkeydown="handleKey(event)"
-                    oninput="autoResize(this)"
-                ></textarea>
-                <button type="submit" class="btn-send" id="btn-send">
-                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                </button>
-            </form>
+            <!-- Plus de <form> classique, on gère tout en JS -->
+            <textarea
+                name="message"
+                id="message"
+                rows="1"
+                placeholder="Votre message... (Entrée pour envoyer, Shift+Entrée pour sauter une ligne)"
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"
+            ></textarea>
+            <button class="btn-send" id="btn-send" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 
     <script>
-        const msgs = document.getElementById('chat-messages');
-        msgs.scrollTop = msgs.scrollHeight;
+        const msgsContainer = document.getElementById('chat-messages');
+        msgsContainer.scrollTop = msgsContainer.scrollHeight;
 
         function autoResize(t) {
             t.style.height = 'auto';
@@ -63,13 +62,141 @@
         function handleKey(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                document.getElementById('chat-form').submit();
+                sendMessage();
             }
         }
 
-        document.getElementById('chat-form').addEventListener('submit', function() {
-            document.getElementById('btn-send').disabled = true;
-        });
+        function scrollToBottom() {
+            msgsContainer.scrollTop = msgsContainer.scrollHeight;
+        }
+
+        function appendMessage(role, content, time) {
+            // Supprime l'état vide si présent
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.remove();
+
+            const div = document.createElement('div');
+            div.className = `msg ${role}`;
+            div.innerHTML = `
+                <div class="msg-bubble">${content}</div>
+                <div class="msg-time">${time}</div>
+            `;
+            msgsContainer.appendChild(div);
+            scrollToBottom();
+            return div.querySelector('.msg-bubble');
+        }
+
+        function appendTypingIndicator() {
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.remove();
+
+            const div = document.createElement('div');
+            div.className = 'msg bot';
+            div.id = 'typing-indicator';
+            div.innerHTML = `
+                <div class="msg-bubble typing">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            msgsContainer.appendChild(div);
+            scrollToBottom();
+            return div;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message');
+            const btn = document.getElementById('btn-send');
+            const message = input.value.trim();
+            if (!message || btn.disabled) return;
+
+            // Reset input
+            input.value = '';
+            input.style.height = 'auto';
+            btn.disabled = true;
+
+            // Heure locale
+            const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+            // Affiche le message utilisateur
+            appendMessage('user', escapeHtml(message), now);
+
+            // Affiche l'indicateur de frappe
+            const typingEl = appendTypingIndicator();
+
+            try {
+                const res = await fetch('/res', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!res.ok) throw new Error('Erreur serveur');
+
+                // Remplace l'indicateur par une bulle vide pour le stream
+                typingEl.remove();
+                const botBubble = appendMessage('bot', '', now);
+
+                // Lecture du stream SSE
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullText = '';
+                let finalTime = now;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // garde la ligne incomplète
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        let data;
+                        try {
+                            data = JSON.parse(line.slice(6));
+                        } catch { continue; }
+
+                        if (data.chunk) {
+                            fullText += data.chunk;
+                            // Préserve les sauts de ligne du bot
+                            botBubble.innerText = fullText;
+                            scrollToBottom();
+                        }
+
+                        if (data.done) {
+                            finalTime = data.time;
+                            // Sauvegarde en session via endpoint dédié
+                            await fetch('/save_message', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ content: data.full, time: data.time })
+                            });
+                        }
+
+                        if (data.error) {
+                            botBubble.textContent = '⚠️ Erreur : ' + data.error;
+                        }
+                    }
+                }
+
+            } catch (err) {
+                typingEl?.remove();
+                appendMessage('bot', '⚠️ Une erreur est survenue, veuillez réessayer.', now);
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                input.focus();
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
     </script>
+
 </body>
 </html>

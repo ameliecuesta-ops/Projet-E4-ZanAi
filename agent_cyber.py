@@ -53,7 +53,6 @@ MOTIF : [Mettre la phrase ici]
 """
 
 
-
 # Template pour les QUESTIONS
 template_expert = """Tu es un expert en cybersécurité (ZanAI). Réponds à la question en utilisant le CONTEXTE (RAG).
 CONTEXTE : {context}
@@ -70,18 +69,22 @@ def get_prompt(input_text):
     return ChatPromptTemplate.from_template(template_expert)
 
 
-# 4. Fonction principale appelée par Flask
-def run_agent(user_input: str) -> str:
+# 4. Fonction streaming appelée par Flask (SSE)
+def run_agent_stream(user_input: str):
+    """
+    Génère les chunks de la réponse au fur et à mesure.
+    Yielde chaque morceau de texte, puis écrit la blacklist à la fin.
+    """
     user_input = user_input.strip()
     if not user_input:
-        return ""
+        return
 
     nb_tentatives = user_input.count("Failed password")
-
-    if nb_tentatives > 0:
-        query_enriched = f"{user_input}\n(Note système : {nb_tentatives} échecs détectés)"
-    else:
-        query_enriched = user_input
+    query_enriched = (
+        f"{user_input}\n(Note système : {nb_tentatives} échecs détectés)"
+        if nb_tentatives > 0
+        else user_input
+    )
 
     current_prompt = get_prompt(user_input)
     chain = (
@@ -94,7 +97,9 @@ def run_agent(user_input: str) -> str:
     full_response = ""
     for chunk in chain.stream(query_enriched):
         full_response += chunk
+        yield chunk  # envoie au front en temps réel
 
+    # Blacklist après le stream complet
     alert_ips = re.findall(
         r"IP\s*:\s*(\d{1,3}(?:\.\d{1,3}){3}).*?STATUT\s*:\s*ALERTE",
         full_response,
@@ -105,4 +110,7 @@ def run_agent(user_input: str) -> str:
             for ip in set(alert_ips):
                 f.write(f"{ip}\n")
 
-    return full_response
+
+# 5. Fonction classique (conservée au cas où)
+def run_agent(user_input: str) -> str:
+    return "".join(run_agent_stream(user_input))

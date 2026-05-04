@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, Response, stream_with_context, jsonify
 from datetime import datetime
-from agent_cyber import run_agent
+from agent_cyber import run_agent_stream
+import json
 
 app = Flask(__name__)
 app.secret_key = "ZANIA"
@@ -14,15 +15,15 @@ def home():
 def equipe():
     return render_template("equipe.html")
 
-@app.route("/auto")
+@app.route("/simulation")
 def auto():
-    return render_template("auto.html")
+    return render_template("simulation.html")
 
 @app.route("/chat_reset")
 def chat_reset():
     session.pop('chat_history', None)
     return redirect(url_for('chat'))
-    
+
 
 @app.route('/chat')
 def chat():
@@ -32,31 +33,55 @@ def chat():
 
 @app.route('/res', methods=['POST'])
 def res():
-    message = request.form.get('message', '').strip()
+    """
+    Reçoit le message, le sauvegarde en session,
+    puis streame la réponse de l'agent via SSE.
+    """
+    message = request.json.get('message', '').strip()
     if not message:
-        return redirect(url_for('chat'))
+        return jsonify({'error': 'empty'}), 400
 
-    history = session.get('chat_history', [])
     now = datetime.now().strftime('%H:%M')
 
-    history.append({
-        'role': 'user',
-        'content': message,
-        'time': now
-    })
-
-    response = run_agent(message)
-
-    history.append({
-        'role': 'bot',
-        'content': response,
-        'time': now
-    })
-
+    # Sauvegarde du message utilisateur en session
+    history = session.get('chat_history', [])
+    history.append({'role': 'user', 'content': message, 'time': now})
     session['chat_history'] = history
     session.modified = True
 
-    return redirect(url_for('chat'))
+    def generate():
+        full_response = []
+        try:
+            for chunk in run_agent_stream(message):
+                full_response.append(chunk)
+                yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return
+
+        # Event final avec la réponse complète pour la sauvegarder côté client
+        yield f"data: {json.dumps({'done': True, 'full': ''.join(full_response), 'time': now})}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+
+@app.route('/save_message', methods=['POST'])
+def save_message():
+    """
+    Sauvegarde la réponse du bot en session après le stream.
+    (La session Flask n'est pas accessible dans un générateur SSE)
+    """
+    data = request.json
+    history = session.get('chat_history', [])
+    history.append({
+        'role': 'bot',
+        'content': data['content'],
+        'time': data['time']
+    })
+    session['chat_history'] = history
+    session.modified = True
+    return jsonify({'ok': True})
 
 
 if __name__ == '__main__':
