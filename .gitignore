@@ -1,0 +1,19 @@
+# Dossiers de base de données (trop lourds pour Git)
+chroma_db/
+training_data
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Fichiers de configuration sensibles
+.env
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Fichiers système
+.DS_Store
+Thumbs.db
